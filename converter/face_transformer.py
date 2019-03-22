@@ -30,6 +30,7 @@ class FaceTransformer(object):
     def set_model(self, model):
         self.model = model
     
+    #TODO: Forward pass before roi?
     def _preprocess_inp_img(self, inp_img, roi_coverage, IMAGE_SHAPE):
         img_bgr = cv2.cvtColor(inp_img, cv2.COLOR_RGB2BGR)
         input_size = img_bgr.shape        
