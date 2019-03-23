@@ -88,13 +88,13 @@ class FaceTransformer(object):
         self.result_alpha = result_alpha
     
     @staticmethod
-    def get_feather_edges_mask(img, roi_coverage, egde_blur=0):
+    def get_feather_edges_mask(img, roi_coverage, edge_blur=0):
         img_size = img.shape
         mask = np.zeros_like(img)
         roi_x, roi_y = int(img_size[0]*(1-roi_coverage)), int(img_size[1]*(1-roi_coverage))
         mask[roi_x:-roi_x, roi_y:-roi_y,:]  = 255
         if edge_blur:
-            mask = cv2.GaussianBlur(mask,(egde_blur,edge_blur),10)
+            mask = cv2.GaussianBlur(mask,(edge_blur,edge_blur),10)
         return mask  
 
     def transform(self, inp_img, direction, roi_coverage, color_correction, edge_blur, IMAGE_SHAPE):
