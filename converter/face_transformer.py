@@ -54,6 +54,7 @@ class FaceTransformer(object):
         
     def _postprocess_roi_img(self, ae_output, roi, roi_size, color_correction):
         ae_output_a = ae_output[:,:,0] * 255
+        ae_output_a = ae_output_a[...,np.newaxis]
         #ae_output_a = cv2.resize(ae_output_a, (roi_size[1],roi_size[0]))[...,np.newaxis]
         ae_output_bgr = np.clip( (ae_output[:,:,1:] + 1) * 255 / 2, 0, 255)
         #ae_output_bgr = cv2.resize(ae_output_bgr, (roi_size[1],roi_size[0]))
