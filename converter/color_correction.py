@@ -71,8 +71,8 @@ def seamless_clone(src_im, tar_im, img_mask, o_x, o_y):
     width = width // 2
     m_h = m_h // 2
     m_w = m_w // 2
-    x_center = m_h + height + o_x
-    y_center = m_w + width + o_y
+    x_center = int(m_h + height + o_x)
+    y_center = int(m_w + width + o_y)
 
     insertion = src_im.astype('uint8')
     insertion_mask = img_mask
