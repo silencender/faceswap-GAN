@@ -35,6 +35,32 @@ def color_hist_match(src_im, tar_im, color_space="RGB"):
         result = trans_color_space(result.astype(np.uint8), color_space, rev=True)
     return matched
 
+def seamless_clone(src_im, tar_im, color_space="RGB"): #(src_im, tar_im, color_space="RGB")
+    """ Seamless clone the swapped image into the old frame with cv2 """
+    if color_space.lower() != "rgb":
+        src_im = trans_color_space(src_im, color_space)
+        tar_im = trans_color_space(tar_im, color_space)
+
+    height, width, _ = src_im.shape
+    height = height // 2
+    width = width // 2
+    y_center = int(height*2)
+    x_center = int(width*2)
+
+    insertion = np.rint(src_im).astype('uint8')
+    insertion_mask = 255 * np.ones(src_im.shape, 'uint8')
+    prior = np.pad(tar_im, ((height, height), (width, width), (0, 0)), 'constant')
+    prior = prior.astype('uint8')
+
+    blended = cv2.seamlessClone(insertion,  # pylint: disable=no-member
+                                prior,
+                                insertion_mask,
+                                (x_center, y_center),
+                                cv2.NORMAL_CLONE)  # pylint: disable=no-member
+    blended = blended[height:-height, width:-width]
+
+    return blended
+
 def adain(src_im, tar_im, eps=1e-7, color_space="RGB"):
     # https://github.com/ftokarev/tf-adain/blob/master/adain/norm.py
     if color_space.lower() != "rgb":
