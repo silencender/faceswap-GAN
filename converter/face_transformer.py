@@ -77,8 +77,6 @@ class FaceTransformer(object):
         result = self.img_bgr.copy()
         roi_x, roi_y = int(input_size[0]*(1-roi_coverage)), int(input_size[1]*(1-roi_coverage))
         result[roi_x:-roi_x, roi_y:-roi_y,:] = blended_img 
-        result = cv2.cvtColor(result, cv2.COLOR_BGR2RGB) 
-        result_rawRGB = cv2.cvtColor(result_rawRGB, cv2.COLOR_BGR2RGB)
         result_alpha = np.zeros_like(self.img_bgr)
         result_alpha[roi_x:-roi_x, roi_y:-roi_y,:] = (blend_mask/255) * self.ae_output_a
         result_rawRGB = self.img_bgr.copy()
@@ -86,6 +84,8 @@ class FaceTransformer(object):
             result_rawRGB = seamless_clone(ae_output_bgr, result_rawRGB, result_alpha, roi_x, roi_y)
         else:
             result_rawRGB[roi_x:-roi_x, roi_y:-roi_y,:] = ae_output_bgr 
+        result = cv2.cvtColor(result, cv2.COLOR_BGR2RGB) 
+        result_rawRGB = cv2.cvtColor(result_rawRGB, cv2.COLOR_BGR2RGB)
         self.result = result 
         self.result_rawRGB = result_rawRGB
         self.result_alpha = result_alpha
