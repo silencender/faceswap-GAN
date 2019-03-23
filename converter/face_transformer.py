@@ -81,7 +81,7 @@ class FaceTransformer(object):
         result_alpha[roi_x:-roi_x, roi_y:-roi_y,:] = (blend_mask/255) * self.ae_output_a
         result_rawRGB = self.img_bgr.copy()
         if color_correction == "seamless_clone":
-            result_rawRGB = seamless_clone(ae_output_bgr, result_rawRGB, result_alpha, roi_x, roi_y)
+            result_rawRGB = seamless_clone(ae_output_bgr, result_rawRGB, self.ae_output_a, roi_x, roi_y)
         else:
             result_rawRGB[roi_x:-roi_x, roi_y:-roi_y,:] = ae_output_bgr 
         result = cv2.cvtColor(result, cv2.COLOR_BGR2RGB) 
