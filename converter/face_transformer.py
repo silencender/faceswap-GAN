@@ -30,6 +30,7 @@ class FaceTransformer(object):
     def set_model(self, model):
         self.model = model
 
+    @staticmethod
     def cal_roi(input_size, roi_coverage):
         if roi:
             roi_x1, roi_y1 = roi_x0, roi_y0 = int(input_size[0]*(1-roi_coverage)), int(input_size[1]*(1-roi_coverage))
