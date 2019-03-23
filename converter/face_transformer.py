@@ -124,7 +124,7 @@ class FaceTransformer(object):
 
         # merge transformed output back to input image
         # Set 3 members: self.result, self.result_rawRGB, self.result_alpha
-        self._merge_img_and_mask(self.ae_output_bgr, self.ae_output_masked, self.edge_blur,
+        self._merge_img_and_mask(self.ae_output_bgr, self.ae_output_masked, edge_blur,
                                   self.input_size, self.roi, roi_coverage, color_correction)
         
         return self.result, self.result_rawRGB, self.result_alpha
