@@ -1,7 +1,6 @@
 from .color_correction import *
 import cv2
 import numpy as np
-from . import constants as C
 from .vc_utils import cal_roi
 
 class FaceTransformer(object):
