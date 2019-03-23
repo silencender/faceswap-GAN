@@ -29,3 +29,14 @@ def get_mask(roi_image, h, w):
     mask[h//15:-h//15,w//15:-w//15,:] = 255
     mask = cv2.GaussianBlur(mask,(15,15),10)
     return mask
+
+def cal_roi(input_size, roi_coverage):
+    if roi_coverage:
+        roi_x1, roi_y1 = roi_x0, roi_y0 = int(input_size[0]*(1-roi_coverage)), int(input_size[1]*(1-roi_coverage))
+        return roi_x0, roi_x1, roi_y0, roi_y1
+    else:
+        roi_x0 = int(input_size[0] * C.ROI_U)
+        roi_x1 = int(input_size[0] * C.ROI_D)
+        roi_y0 = int(input_size[1] * C.ROI_L)
+        roi_y1 = int(input_size[1] * C.ROI_R)
+        return roi_x0, roi_x1, roi_y0, roi_y1
