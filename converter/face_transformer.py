@@ -65,8 +65,8 @@ class FaceTransformer(object):
             self.ae_output_masked = color_hist_match(ae_output_masked, roi)
             self.ae_output_bgr = color_hist_match(ae_output_bgr, roi)
         elif color_correction == "seamless_clone":
-            self.ae_output_masked = color_hist_match(ae_output_masked, roi)
-            self.ae_output_bgr = color_hist_match(ae_output_bgr, roi)
+            self.ae_output_masked = seamless_clone(ae_output_masked, roi)
+            self.ae_output_bgr = seamless_clone(ae_output_bgr, roi)
         else:
             self.ae_output_masked = ae_output_masked
             self.ae_output_bgr = ae_output_bgr
