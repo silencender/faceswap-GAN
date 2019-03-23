@@ -223,8 +223,8 @@ class VideoConverter(object):
         
     @staticmethod
     def check_options(options):
-        if options["roi_coverage"] <= 0 or options["roi_coverage"] >= 1:
-            raise ValueError(f"roi_coverage should be between 0 and 1 (exclusive).")
+        if options["roi_coverage"] < 0 or options["roi_coverage"] >= 1:
+            raise ValueError(f"roi_coverage should be between 0 and 1 (exclusive). 0 for auto roi.")
         if options["bbox_moving_avg_coef"] < 0 or options["bbox_moving_avg_coef"] > 1:
             raise ValueError(f"bbox_moving_avg_coef should be between 0 and 1 (inclusive).")
         if options["detec_threshold"] < 0 or options["detec_threshold"] > 1:
