@@ -45,7 +45,7 @@ class FaceTransformer(object):
     def _preprocess_inp_img(self, inp_img, roi_coverage, IMAGE_SHAPE):
         img_bgr = cv2.cvtColor(inp_img, cv2.COLOR_RGB2BGR)
         input_size = img_bgr.shape
-        roi_x0, roi_x1, roi_y0, roi_y1 = cal_roi(input_size, roi_coverage)
+        roi_x0, roi_x1, roi_y0, roi_y1 = self.cal_roi(input_size, roi_coverage)
         roi = img_bgr[roi_x0:roi_x1, roi_y0:roi_y1,:] # BGR, [0, 255]  
         roi_size = roi.shape
         roi_bound = (roi_x0, roi_x1, roi_y0, roi_y1)
@@ -109,7 +109,7 @@ class FaceTransformer(object):
     def get_feather_edges_mask(img, roi_coverage, edge_blur=0):
         img_size = img.shape
         mask = np.zeros_like(img)
-        roi_x0, roi_x1, roi_y0, roi_y1 = cal_roi(img_size, roi_coverage)
+        roi_x0, roi_x1, roi_y0, roi_y1 = self.cal_roi(img_size, roi_coverage)
         mask[roi_x0:roi_x1, roi_y0:roi_y1,:]  = 255
         if edge_blur:
             mask = cv2.GaussianBlur(mask,(edge_blur,edge_blur),10)
