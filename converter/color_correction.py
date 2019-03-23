@@ -75,7 +75,7 @@ def seamless_clone(src_im, tar_im, img_mask, o_x, o_y):
     y_center = int(m_w + width + o_y)
 
     insertion = src_im.astype('uint8')
-    insertion_mask = img_mask
+    insertion_mask = img_mask.copy()
     insertion_mask[insertion_mask != 0] = 255
     insertion_mask = insertion_mask.astype('uint8')
     prior = np.pad(tar_im, ((height, height), (width, width), (0, 0)), 'constant')
