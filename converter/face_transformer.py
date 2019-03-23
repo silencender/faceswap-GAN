@@ -158,7 +158,7 @@ class FaceTransformer(object):
         input_size = inp_img.shape        
         roi_x, roi_y = int(input_size[0]*(1-roi_coverage)), int(input_size[1]*(1-roi_coverage))
         # roi = 0 stands for auto roi
-        if roi == 0:
+        if roi_coverage == 0:
             return
         if roi_x == 0 or roi_y == 0:
             raise ValueError("Error occurs when cropping roi image. \
