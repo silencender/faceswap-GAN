@@ -37,7 +37,8 @@ class FaceTransformer(object):
         roi = img_bgr[roi_x0:roi_x1, roi_y0:roi_y1,:] # BGR, [0, 255]  
         roi_size = roi.shape
         roi_bound = (roi_x0, roi_x1, roi_y0, roi_y1)
-        ae_input = cv2.resize(img_bgr, IMAGE_SHAPE[:2])/255. * 2 - 1 # BGR, [-1, 1]  
+        ae_input = cv2.resize(roi, IMAGE_SHAPE[:2])/255. * 2 - 1 # BGR, [-1, 1]  
+        #ae_input = cv2.resize(img_bgr, IMAGE_SHAPE[:2])/255. * 2 - 1 # BGR, [-1, 1]  
         self.img_bgr = img_bgr
         self.input_size = input_size
         self.roi = roi
@@ -48,16 +49,16 @@ class FaceTransformer(object):
     def _ae_forward_pass(self, ae_input):
         ae_out = self.path_func([[ae_input]])
         ae_out = np.squeeze(np.array([ae_out]))
-        ae_out = cv2.resize(ae_out, self.input_size[:2])
-        roi_x0, roi_x1, roi_y0, roi_y1 = self.roi_bound
-        self.ae_output = ae_out[roi_x0:roi_x1, roi_y0:roi_y1,:]
+        #ae_out = cv2.resize(ae_out, self.input_size[:2])
+        #roi_x0, roi_x1, roi_y0, roi_y1 = self.roi_bound
+        self.ae_output = ae_out #[roi_x0:roi_x1, roi_y0:roi_y1,:]
         
     def _postprocess_roi_img(self, ae_output, roi, roi_size, color_correction):
         ae_output_a = ae_output[:,:,0] * 255
-        ae_output_a = ae_output_a[...,np.newaxis]
-        #ae_output_a = cv2.resize(ae_output_a, (roi_size[1],roi_size[0]))[...,np.newaxis]
+        #ae_output_a = ae_output_a[...,np.newaxis]
+        ae_output_a = cv2.resize(ae_output_a, (roi_size[1],roi_size[0]))[...,np.newaxis]
         ae_output_bgr = np.clip( (ae_output[:,:,1:] + 1) * 255 / 2, 0, 255)
-        #ae_output_bgr = cv2.resize(ae_output_bgr, (roi_size[1],roi_size[0]))
+        ae_output_bgr = cv2.resize(ae_output_bgr, (roi_size[1],roi_size[0]))
         ae_output_masked = (ae_output_a/255 * ae_output_bgr + (1 - ae_output_a/255) * roi).astype('uint8') # BGR, [0, 255]
         self.ae_output_a = ae_output_a         
         if color_correction == "adain":
