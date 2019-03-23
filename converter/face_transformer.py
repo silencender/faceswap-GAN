@@ -1,7 +1,7 @@
 from .color_correction import *
 import cv2
 import numpy as np
-import .constants as C
+from . import constants as C
 
 class FaceTransformer(object):
     """
