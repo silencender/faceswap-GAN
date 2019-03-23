@@ -162,6 +162,7 @@ class VideoConverter(object):
                     direction=options["direction"], 
                     roi_coverage=options["roi_coverage"],
                     color_correction=options["use_color_correction"],
+                    edge_blur=options["edge_blur"],
                     IMAGE_SHAPE=options["IMAGE_SHAPE"]
                     )
 
@@ -185,6 +186,7 @@ class VideoConverter(object):
                     direction=options["direction"], 
                     roi_coverage=options["roi_coverage"],
                     color_correction=options["use_color_correction"],
+                    edge_blur=options["edge_blur"],
                     IMAGE_SHAPE=options["IMAGE_SHAPE"]
                     )
 

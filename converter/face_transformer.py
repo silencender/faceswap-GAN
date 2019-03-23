@@ -71,10 +71,8 @@ class FaceTransformer(object):
             self.ae_output_masked = ae_output_masked
             self.ae_output_bgr = ae_output_bgr
     
-    def _merge_img_and_mask(self, ae_output_bgr, ae_output_masked, input_size, roi, roi_coverage, color_correction):  
-        blend_mask = self.get_feather_edges_mask(roi, roi_coverage)      
-        if color_correction == "seamless_clone":
-            blend_mask = self.get_feather_edges_mask(roi, roi_coverage, False)
+    def _merge_img_and_mask(self, ae_output_bgr, ae_output_masked, edge_blur, input_size, roi, roi_coverage, color_correction):  
+        blend_mask = self.get_feather_edges_mask(roi, roi_coverage, edge_blur)      
         blended_img = blend_mask/255 * ae_output_masked + (1-blend_mask/255) * roi
         result = self.img_bgr.copy()
         roi_x, roi_y = int(input_size[0]*(1-roi_coverage)), int(input_size[1]*(1-roi_coverage))
@@ -90,16 +88,16 @@ class FaceTransformer(object):
         self.result_alpha = result_alpha
     
     @staticmethod
-    def get_feather_edges_mask(img, roi_coverage, blur=True):
+    def get_feather_edges_mask(img, roi_coverage, egde_blur=0):
         img_size = img.shape
         mask = np.zeros_like(img)
         roi_x, roi_y = int(img_size[0]*(1-roi_coverage)), int(img_size[1]*(1-roi_coverage))
         mask[roi_x:-roi_x, roi_y:-roi_y,:]  = 255
-        if blur:
-            mask = cv2.GaussianBlur(mask,(15,15),10)
+        if edge_blur:
+            mask = cv2.GaussianBlur(mask,(egde_blur,edge_blur),10)
         return mask  
 
-    def transform(self, inp_img, direction, roi_coverage, color_correction, IMAGE_SHAPE):
+    def transform(self, inp_img, direction, roi_coverage, color_correction, edge_blur, IMAGE_SHAPE):
         self.check_generator_model(self.model)
         self.check_roi_coverage(inp_img, roi_coverage)
         
@@ -126,7 +124,7 @@ class FaceTransformer(object):
 
         # merge transformed output back to input image
         # Set 3 members: self.result, self.result_rawRGB, self.result_alpha
-        self._merge_img_and_mask(self.ae_output_bgr, self.ae_output_masked, 
+        self._merge_img_and_mask(self.ae_output_bgr, self.ae_output_masked, self.edge_blur,
                                   self.input_size, self.roi, roi_coverage, color_correction)
         
         return self.result, self.result_rawRGB, self.result_alpha
