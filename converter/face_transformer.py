@@ -32,7 +32,7 @@ class FaceTransformer(object):
 
     @staticmethod
     def cal_roi(input_size, roi_coverage):
-        if roi:
+        if roi_coverage:
             roi_x1, roi_y1 = roi_x0, roi_y0 = int(input_size[0]*(1-roi_coverage)), int(input_size[1]*(1-roi_coverage))
             return roi_x0, roi_x1, roi_y0, roi_y1
         else:
