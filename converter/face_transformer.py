@@ -64,9 +64,9 @@ class FaceTransformer(object):
         elif color_correction == "hist_match":
             self.ae_output_masked = color_hist_match(ae_output_masked, roi)
             self.ae_output_bgr = color_hist_match(ae_output_bgr, roi)
-        elif color_correction == "seamless_clone":
-            self.ae_output_masked = seamless_clone(ae_output_masked, roi)
-            self.ae_output_bgr = seamless_clone(ae_output_bgr, roi)
+        #elif color_correction == "seamless_clone":
+        #    self.ae_output_masked = seamless_clone(ae_output_masked, roi)
+        #    self.ae_output_bgr = seamless_clone(ae_output_bgr, roi)
         else:
             self.ae_output_masked = ae_output_masked
             self.ae_output_bgr = ae_output_bgr
@@ -95,6 +95,8 @@ class FaceTransformer(object):
         mask[roi_x:-roi_x, roi_y:-roi_y,:]  = 255
         if edge_blur:
             mask = cv2.GaussianBlur(mask,(edge_blur,edge_blur),10)
+        else:
+            mask[:,:,:] = 255
         return mask  
 
     def transform(self, inp_img, direction, roi_coverage, color_correction, edge_blur, IMAGE_SHAPE):

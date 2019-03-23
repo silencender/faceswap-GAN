@@ -1,5 +1,6 @@
 from .kalman_filter import KalmanFilter
 from .landmarks_alignment import *
+from .color_correction import seamless_clone
 from .face_transformer import FaceTransformer
 from .vc_utils import *
 import numpy as np
@@ -189,8 +190,11 @@ class VideoConverter(object):
                     edge_blur=options["edge_blur"],
                     IMAGE_SHAPE=options["IMAGE_SHAPE"]
                     )
-
-            comb_img[int(x0):int(x1),input_img.shape[1]+int(y0):input_img.shape[1]+int(y1),:] = result
+            if options["use_color_correction"] == "seamless_clone":
+                syn_face = seamless_clone(result, input_img, result_a, x0, y0)
+                comb_img[:, input_img.shape[1]:input_img.shape[1]*2, :] = syn_face
+            else:
+                comb_img[int(x0):int(x1),input_img.shape[1]+int(y0):input_img.shape[1]+int(y1),:] = result
             
             # Enhance output
             if options["enhance"] != 0:

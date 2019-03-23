@@ -35,6 +35,7 @@ def color_hist_match(src_im, tar_im, color_space="RGB"):
         result = trans_color_space(result.astype(np.uint8), color_space, rev=True)
     return matched
 
+'''
 def seamless_clone(src_im, tar_im, color_space="RGB"): #(src_im, tar_im, color_space="RGB")
     """ Seamless clone the swapped image into the old frame with cv2 """
     if color_space.lower() != "rgb":
@@ -56,6 +57,34 @@ def seamless_clone(src_im, tar_im, color_space="RGB"): #(src_im, tar_im, color_s
                                 prior,
                                 insertion_mask,
                                 (x_center, y_center),
+                                cv2.NORMAL_CLONE)  # pylint: disable=no-member
+    blended = blended[height:-height, width:-width]
+
+    return blended
+'''
+
+def seamless_clone(src_im, tar_im, img_mask, o_x, o_y):
+    """ Seamless clone the swapped image into the old frame with cv2 """
+    height, width, _ = tar_im.shape
+    m_h, m_w, _ = img_mask.shape
+    height = height // 2
+    width = width // 2
+    m_h = m_h // 2
+    m_w = m_w // 2
+    x_center = m_h + height + o_x
+    y_center = m_w + width + o_y
+
+    insertion = src_im.astype('uint8')
+    insertion_mask = img_mask
+    insertion_mask[insertion_mask != 0] = 255
+    insertion_mask = insertion_mask.astype('uint8')
+    prior = np.pad(frame, ((height, height), (width, width), (0, 0)), 'constant')
+    prior = prior.astype('uint8')
+
+    blended = cv2.seamlessClone(insertion,  # pylint: disable=no-member
+                                prior,
+                                insertion_mask,
+                                (y_center, x_center),
                                 cv2.NORMAL_CLONE)  # pylint: disable=no-member
     blended = blended[height:-height, width:-width]
 
