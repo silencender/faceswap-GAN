@@ -78,7 +78,7 @@ def seamless_clone(src_im, tar_im, img_mask, o_x, o_y):
     insertion_mask = img_mask
     insertion_mask[insertion_mask != 0] = 255
     insertion_mask = insertion_mask.astype('uint8')
-    prior = np.pad(frame, ((height, height), (width, width), (0, 0)), 'constant')
+    prior = np.pad(tar_im, ((height, height), (width, width), (0, 0)), 'constant')
     prior = prior.astype('uint8')
 
     blended = cv2.seamlessClone(insertion,  # pylint: disable=no-member
