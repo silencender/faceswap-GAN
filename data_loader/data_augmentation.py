@@ -44,7 +44,7 @@ def random_transform(image, rotation_range, zoom_range, shift_range, random_flip
     return result
 
 def random_warp_rev(image, res=64):
-    assert image.shape == (256,256,6)
+    assert image.shape == (256,256,9)
     res_scale = res//64
     assert res_scale >= 1, f"Resolution should be >= 64. Recieved {res}."
     interp_param = 80 * res_scale
