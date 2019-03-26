@@ -187,7 +187,7 @@ class FaceswapGANModel():
         bgr = Conv2D(3, kernel_size=5, padding='same', activation="tanh")(x)
         out = concatenate([alpha, bgr])
         outputs.append(out)
-        return Model(inp, outputs)
+        return Model([inp, lay], outputs)
     
     @staticmethod
     def build_discriminator(nc_in, 
@@ -266,8 +266,8 @@ class FaceswapGANModel():
         # The following losses are rather trivial, thus their wegihts are fixed.
         # Cycle consistency loss
         if loss_config['use_cyclic_loss']:
-            loss_GA += 10 * cyclic_loss(self.netGA, self.netGB, self.real_A)
-            loss_GB += 10 * cyclic_loss(self.netGB, self.netGA, self.real_B)
+            loss_GA += 10 * cyclic_loss(self.netGA, self.netGB, self.real_A, self.layout_A)
+            loss_GB += 10 * cyclic_loss(self.netGB, self.netGA, self.real_B, self.layout_B)
 
         # Alpha mask loss
         if not loss_config['use_mask_hinge_loss']:
