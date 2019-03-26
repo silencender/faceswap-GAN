@@ -215,7 +215,7 @@ class FaceswapGANModel():
     @staticmethod
     def define_variables(netG):
         distorted_input = netG.inputs[0]
-        layout = netG.inputs[0]
+        layout = netG.inputs[1]
         fake_output = netG.outputs[-1]
         alpha = Lambda(lambda x: x[:,:,:, :1])(fake_output)
         bgr = Lambda(lambda x: x[:,:,:, 1:])(fake_output)
