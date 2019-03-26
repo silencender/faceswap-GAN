@@ -369,10 +369,10 @@ class FaceswapGANModel():
         return errGA, errGB
     
     def train_one_batch_D(self, data_A, data_B):
-        if len(data_A) == 4 and len(data_B) == 4:
+        if len(data_A) == 5 and len(data_B) == 5:
             _, warped_A, target_A, _, _ = data_A
             _, warped_B, target_B, _, _  = data_B
-        elif len(data_A) == 3 and len(data_B) == 3:
+        elif len(data_A) == 4 and len(data_B) == 4:
             warped_A, target_A, _, _  = data_A
             warped_B, target_B, _, _  = data_B
         else:
