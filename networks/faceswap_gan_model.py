@@ -58,13 +58,14 @@ class FaceswapGANModel():
                                               norm=self.norm                                         
                                              )
         x = Input(shape=self.IMAGE_SHAPE) # dummy input tensor
-        self.netGA = Model(x, self.decoder_A(self.encoder(x)))
-        self.netGB = Model(x, self.decoder_B(self.encoder(x)))
+        y = Input(shape=self.IMAGE_SHAPE) # dummy input tensor
+        self.netGA = Model([x, y], self.decoder_A([self.encoder(x), y]))
+        self.netGB = Model([x, y], self.decoder_B([self.encoder(x), y]))
         
         # define variables
-        self.distorted_A, self.fake_A, self.mask_A, \
+        self.distorted_A, self.layout_A, self.fake_A, self.mask_A, \
         self.path_A, self.path_mask_A, self.path_abgr_A, self.path_bgr_A = self.define_variables(netG=self.netGA)
-        self.distorted_B, self.fake_B, self.mask_B, \
+        self.distorted_B, self.layout_B, self.fake_B, self.mask_B, \
         self.path_B, self.path_mask_B, self.path_abgr_B, self.path_bgr_B = self.define_variables(netG=self.netGB)
         self.real_A = Input(shape=self.IMAGE_SHAPE)
         self.real_B = Input(shape=self.IMAGE_SHAPE)
@@ -102,7 +103,7 @@ class FaceswapGANModel():
         x = Reshape((4, 4, 1024//(coef**2)))(x)
         out = upscale_block(x, 512//coef, use_norm, norm=norm)
         return Model(inputs=inp, outputs=out)        
-    
+    '''
     @staticmethod
     def build_decoder(nc_in=512, 
                       input_size=8, 
@@ -129,6 +130,56 @@ class FaceswapGANModel():
         while (activ_map_size < output_size):
             outputs.append(Conv2D(3, kernel_size=5, padding='same', activation="tanh")(x))
             x = upscale_block(x, 64//coef, use_norm, norm=norm)
+            x = conv_block(x, 64//coef, strides=1)
+            activ_map_size *= 2
+        
+        alpha = Conv2D(1, kernel_size=5, padding='same', activation="sigmoid")(x)
+        bgr = Conv2D(3, kernel_size=5, padding='same', activation="tanh")(x)
+        out = concatenate([alpha, bgr])
+        outputs.append(out)
+        return Model(inp, outputs)
+        '''
+
+    @staticmethod
+    def build_decoder(nc_in=512, 
+                      input_size=8, 
+                      output_size=64, 
+                      use_self_attn=True, 
+                      norm='none', 
+                      model_capacity='standard'):  
+        coef = 2 if model_capacity == "lite" else 1
+        upscale_block = upscale_nn if model_capacity == "lite" else upscale_ps
+        activ_map_size = input_size
+        use_norm = False if (norm == 'none') else True
+
+        inp = Input(shape=(input_size, input_size, nc_in))
+        lay = Input(shape=(output_size, output_size, nc_in))
+        ne = 1
+        x = inp
+        x = upscale_block(x, 256//coef, use_norm, norm=norm)
+        ne <<= 1
+        y = tf.image.resize_images(lay, [input_size*ne, input_size*ne])
+        y = SPADE_res_block(x, y, 256//coef, True, 'batchnorm')
+        x = upscale_block(x, 128//coef, use_norm, norm=norm)
+        ne <<= 1
+        y = tf.image.resize_images(lay, [input_size*ne, input_size*ne])
+        y = SPADE_res_block(x, y, 128//coef, True, 'batchnorm')
+        x = self_attn_block(x, 128//coef) if use_self_attn else x
+        x = upscale_block(x, 64//coef, use_norm, norm=norm)
+        ne <<= 1
+        y = tf.image.resize_images(lay, [input_size*ne, input_size*ne])
+        y = SPADE_res_block(x, y, 64//coef, True, 'batchnorm')
+        x = res_block(x, 64//coef, norm=norm)
+        x = self_attn_block(x, 64//coef) if use_self_attn else conv_block(x, 64//coef, strides=1)
+        
+        outputs = []
+        activ_map_size = activ_map_size * 8
+        while (activ_map_size < output_size):
+            outputs.append(Conv2D(3, kernel_size=5, padding='same', activation="tanh")(x))
+            x = upscale_block(x, 64//coef, use_norm, norm=norm)
+            ne <<= 1
+            y = tf.image.resize_images(lay, [input_size*ne, input_size*ne])
+            y = SPADE_res_block(x, y, 256//coef, True, 'batchnorm')
             x = conv_block(x, 64//coef, strides=1)
             activ_map_size *= 2
         
@@ -164,6 +215,7 @@ class FaceswapGANModel():
     @staticmethod
     def define_variables(netG):
         distorted_input = netG.inputs[0]
+        layout = netG.inputs[0]
         fake_output = netG.outputs[-1]
         alpha = Lambda(lambda x: x[:,:,:, :1])(fake_output)
         bgr = Lambda(lambda x: x[:,:,:, 1:])(fake_output)
@@ -174,7 +226,7 @@ class FaceswapGANModel():
         fn_mask = K.function([distorted_input], [concatenate([alpha, alpha, alpha])])
         fn_abgr = K.function([distorted_input], [concatenate([alpha, bgr])])
         fn_bgr = K.function([distorted_input], [bgr])
-        return distorted_input, fake_output, alpha, fn_generate, fn_mask, fn_abgr, fn_bgr 
+        return distorted_input, layout, fake_output, alpha, fn_generate, fn_mask, fn_abgr, fn_bgr 
     
     def build_train_functions(self, loss_weights=None, **loss_config):
         assert loss_weights is not None, "loss weights are not provided."
@@ -252,14 +304,14 @@ class FaceswapGANModel():
         training_updates = Adam(lr=self.lrD*loss_config['lr_factor'], beta_1=0.5).get_updates(weightsDA,[],loss_DA)
         self.netDA_train = K.function([self.distorted_A, self.real_A],[loss_DA], training_updates)
         training_updates = Adam(lr=self.lrG*loss_config['lr_factor'], beta_1=0.5).get_updates(weightsGA,[], loss_GA)
-        self.netGA_train = K.function([self.distorted_A, self.real_A, self.mask_eyes_A], 
+        self.netGA_train = K.function([self.distorted_A, self.real_A, self.mask_eyes_A, self.layout_A], 
                                       [loss_GA, loss_adv_GA, loss_recon_GA, loss_edge_GA, loss_pl_GA], 
                                       training_updates)
 
         training_updates = Adam(lr=self.lrD*loss_config['lr_factor'], beta_1=0.5).get_updates(weightsDB,[],loss_DB)
         self.netDB_train = K.function([self.distorted_B, self.real_B],[loss_DB], training_updates)
         training_updates = Adam(lr=self.lrG*loss_config['lr_factor'], beta_1=0.5).get_updates(weightsGB,[], loss_GB)
-        self.netGB_train = K.function([self.distorted_B, self.real_B, self.mask_eyes_B], 
+        self.netGB_train = K.function([self.distorted_B, self.real_B, self.mask_eyes_B, self.layout_B], 
                                       [loss_GB, loss_adv_GB, loss_recon_GB, loss_edge_GB, loss_pl_GB], 
                                       training_updates)
     
@@ -305,24 +357,24 @@ class FaceswapGANModel():
         
     def train_one_batch_G(self, data_A, data_B):
         if len(data_A) == 4 and len(data_B) == 4:
-            _, warped_A, target_A, bm_eyes_A = data_A
-            _, warped_B, target_B, bm_eyes_B = data_B
+            _, warped_A, target_A, bm_eyes_A, layout_A = data_A
+            _, warped_B, target_B, bm_eyes_B, layout_B = data_B
         elif len(data_A) == 3 and len(data_B) == 3:
-            warped_A, target_A, bm_eyes_A = data_A
-            warped_B, target_B, bm_eyes_B = data_B
+            warped_A, target_A, bm_eyes_A, layout_A = data_A
+            warped_B, target_B, bm_eyes_B, layout_B = data_B
         else:
             raise ValueError("Something's wrong with the input data generator.")
-        errGA = self.netGA_train([warped_A, target_A, bm_eyes_A])
-        errGB = self.netGB_train([warped_B, target_B, bm_eyes_B])        
+        errGA = self.netGA_train([warped_A, target_A, bm_eyes_A, layout_A])
+        errGB = self.netGB_train([warped_B, target_B, bm_eyes_B, layout_B])        
         return errGA, errGB
     
     def train_one_batch_D(self, data_A, data_B):
         if len(data_A) == 4 and len(data_B) == 4:
-            _, warped_A, target_A, _ = data_A
-            _, warped_B, target_B, _ = data_B
+            _, warped_A, target_A, _, _ = data_A
+            _, warped_B, target_B, _, _  = data_B
         elif len(data_A) == 3 and len(data_B) == 3:
-            warped_A, target_A, _ = data_A
-            warped_B, target_B, _ = data_B
+            warped_A, target_A, _, _  = data_A
+            warped_B, target_B, _, _  = data_B
         else:
             raise ValueError("Something's wrong with the input data generator.")
         errDA = self.netDA_train([warped_A, target_A])

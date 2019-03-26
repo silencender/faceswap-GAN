@@ -109,8 +109,8 @@ def random_color_match(image, fns_all_trn_data):
         result = cv2.cvtColor(result.astype(np.uint8), cv2.COLOR_XYZ2BGR)
     return result
 
-def read_image(fn, fns_all_trn_data, dir_bm_eyes=None, res=64, prob_random_color_match=0.5, 
-               use_da_motion_blur=True, use_bm_eyes=True, 
+def read_image(fn, fns_all_trn_data, dir_bm_eyes=None, dir_layout=None, res=64, prob_random_color_match=0.5, 
+               use_da_motion_blur=True, use_bm_eyes=True, use_layout=True,
                random_transform_args=random_transform_args):
     if dir_bm_eyes is None:
         raise ValueError(f"dir_bm_eyes is not set.")
@@ -120,6 +120,7 @@ def read_image(fn, fns_all_trn_data, dir_bm_eyes=None, res=64, prob_random_color
     if type(fn) == type(b"bytes"):
         fn = fn.decode("utf-8")
         dir_bm_eyes = dir_bm_eyes.decode("utf-8")
+        dir_layout = dir_layout.decode("utf-8")
         fns_all_trn_data = [fn_all.decode("utf-8") for fn_all in fns_all_trn_data]
     
     raw_fn = PurePath(fn).parts[-1]
@@ -142,12 +143,25 @@ def read_image(fn, fns_all_trn_data, dir_bm_eyes=None, res=64, prob_random_color
         bm_eyes = cv2.resize(bm_eyes, (256,256)) / 255.
     else:
         bm_eyes = np.zeros_like(image)
+
+    if use_layout:
+        layout = cv2.imread(f"{dir_layout}/{raw_fn}")
+        if layout is None:
+            print(f"Failed reading binary mask {dir_layout}/{raw_fn}. \
+            If this message keeps showing, please check for existence of binary masks folder \
+            or disable eye-aware training in the configuration.")
+            layout = np.zeros_like(image)
+            #raise IOError(f"Failed reading binary mask {dir_bm_eyes}/{raw_fn}.")
+        layout = cv2.resize(layout, (256,256)) / 255.
+    else:
+        layout = np.zeros_like(image)
     
-    image = np.concatenate([image, bm_eyes], axis=-1)
+    image = np.concatenate([image, bm_eyes, layout], axis=-1)
     image = random_transform(image, **random_transform_args)
     warped_img, target_img = random_warp_rev(image, res=res)
     
-    bm_eyes = target_img[...,3:]
+    bm_eyes = target_img[...,3:6]
+    layout = target_img[...,6:]
     warped_img = warped_img[...,:3]
     target_img = target_img[...,:3]
     
@@ -156,7 +170,7 @@ def read_image(fn, fns_all_trn_data, dir_bm_eyes=None, res=64, prob_random_color
     if np.random.uniform() < 0.25 and use_da_motion_blur: 
         warped_img, target_img = motion_blur([warped_img, target_img])
     
-    warped_img, target_img, bm_eyes = \
-    warped_img.astype(np.float32), target_img.astype(np.float32), bm_eyes.astype(np.float32)
+    warped_img, target_img, bm_eyes, layout = \
+    warped_img.astype(np.float32), target_img.astype(np.float32), bm_eyes.astype(np.float32), layout.astype(np.float32)
     
-    return warped_img, target_img, bm_eyes
+    return warped_img, target_img, bm_eyes, layout

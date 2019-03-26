@@ -4,11 +4,12 @@ from .data_augmentation import *
 
 class DataLoader(object):
     def __init__(self, filenames, all_filenames, batch_size, dir_bm_eyes, 
-                 resolution, num_cpus, sess, **da_config):
+                 dir_layout, resolution, num_cpus, sess, **da_config):
         self.filenames = filenames
         self.all_filenames = all_filenames
         self.batch_size = batch_size
         self.dir_bm_eyes = dir_bm_eyes
+        self.dir_layout = dir_layout
         self.resolution = resolution
         self.num_cpus = num_cpus
         self.sess = sess
@@ -16,27 +17,31 @@ class DataLoader(object):
         self.set_data_augm_config(
             da_config["prob_random_color_match"], 
             da_config["use_da_motion_blur"], 
-            da_config["use_bm_eyes"])
+            da_config["use_bm_eyes"],
+            da_config["use_layout"])
         
         self.data_iter_next = self.create_tfdata_iter(
             self.filenames, 
             self.all_filenames,
             self.batch_size, 
             self.dir_bm_eyes,
+            self.dir_layout,
             self.resolution,
             self.prob_random_color_match,
             self.use_da_motion_blur,
             self.use_bm_eyes,
+            self.use_layout
         )
         
     def set_data_augm_config(self, prob_random_color_match=0.5, 
-                             use_da_motion_blur=True, use_bm_eyes=True):
+                             use_da_motion_blur=True, use_bm_eyes=True, use_layout=True):
         self.prob_random_color_match = prob_random_color_match
         self.use_da_motion_blur = use_da_motion_blur
         self.use_bm_eyes = use_bm_eyes
+        self.use_layout = use_layout
         
-    def create_tfdata_iter(self, filenames, fns_all_trn_data, batch_size, dir_bm_eyes, resolution, 
-                           prob_random_color_match, use_da_motion_blur, use_bm_eyes):
+    def create_tfdata_iter(self, filenames, fns_all_trn_data, batch_size, dir_bm_eyes, dir_layout, resolution, 
+                           prob_random_color_match, use_da_motion_blur, use_bm_eyes, use_layout):
         tf_fns = tf.constant(filenames, dtype=tf.string) # use tf_fns=filenames is also fine
         dataset = tf.data.Dataset.from_tensor_slices(tf_fns) 
         dataset = dataset.shuffle(len(filenames))
@@ -47,10 +52,12 @@ class DataLoader(object):
                     inp=[filenames, 
                          fns_all_trn_data, 
                          dir_bm_eyes, 
+                         dir_layout,
                          resolution, 
                          prob_random_color_match, 
                          use_da_motion_blur, 
-                         use_bm_eyes], 
+                         use_bm_eyes,
+                         use_layout], 
                     Tout=[tf.float32, tf.float32, tf.float32]
                 ), 
                 batch_size=batch_size,
