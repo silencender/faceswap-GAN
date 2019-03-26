@@ -356,10 +356,10 @@ class FaceswapGANModel():
             pass
         
     def train_one_batch_G(self, data_A, data_B):
-        if len(data_A) == 4 and len(data_B) == 4:
+        if len(data_A) == 5 and len(data_B) == 5:
             _, warped_A, target_A, bm_eyes_A, layout_A = data_A
             _, warped_B, target_B, bm_eyes_B, layout_B = data_B
-        elif len(data_A) == 3 and len(data_B) == 3:
+        elif len(data_A) == 4 and len(data_B) == 4:
             warped_A, target_A, bm_eyes_A, layout_A = data_A
             warped_B, target_B, bm_eyes_B, layout_B = data_B
         else:
