@@ -58,7 +58,7 @@ class DataLoader(object):
                          use_da_motion_blur, 
                          use_bm_eyes,
                          use_layout], 
-                    Tout=[tf.float32, tf.float32, tf.float32]
+                    Tout=[tf.float32, tf.float32, tf.float32, tf.float32]
                 ), 
                 batch_size=batch_size,
                 num_parallel_batches=self.num_cpus, # cpu cores
