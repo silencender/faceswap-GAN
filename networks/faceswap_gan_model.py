@@ -153,7 +153,7 @@ class FaceswapGANModel():
         use_norm = False if (norm == 'none') else True
 
         inp = Input(shape=(input_size, input_size, nc_in))
-        lay = Input(shape=(output_size, output_size, nc_in))
+        lay = Input(shape=(output_size, output_size, 3))
         ne = 1
         x = inp
         x = upscale_block(x, 256//coef, use_norm, norm=norm)
