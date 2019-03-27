@@ -369,6 +369,8 @@ class FaceswapGANModel():
             warped_B, target_B, _, _  = data_B
         else:
             raise ValueError("Something's wrong with the input data generator.")
+        print(warped_A.shape)
+        print(target_A.shape)
         errDA = self.netDA_train([warped_A, target_A])
         errDB = self.netDB_train([warped_B, target_B])
         return errDA, errDB
