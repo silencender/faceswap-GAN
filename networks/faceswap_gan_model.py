@@ -294,14 +294,14 @@ class FaceswapGANModel():
         # Define training functions
         # Adam(...).get_updates(...)
         training_updates = Adam(lr=self.lrD*loss_config['lr_factor'], beta_1=0.5).get_updates(weightsDA,[],loss_DA)
-        self.netDA_train = K.function([self.distorted_A, self.real_A],[loss_DA], training_updates)
+        self.netDA_train = K.function([self.distorted_A, self.real_A, self.layout_A],[loss_DA], training_updates)
         training_updates = Adam(lr=self.lrG*loss_config['lr_factor'], beta_1=0.5).get_updates(weightsGA,[], loss_GA)
         self.netGA_train = K.function([self.distorted_A, self.real_A, self.mask_eyes_A, self.layout_A], 
                                       [loss_GA, loss_adv_GA, loss_recon_GA, loss_edge_GA, loss_pl_GA], 
                                       training_updates)
 
         training_updates = Adam(lr=self.lrD*loss_config['lr_factor'], beta_1=0.5).get_updates(weightsDB,[],loss_DB)
-        self.netDB_train = K.function([self.distorted_B, self.real_B],[loss_DB], training_updates)
+        self.netDB_train = K.function([self.distorted_B, self.real_B, self.layout_B],[loss_DB], training_updates)
         training_updates = Adam(lr=self.lrG*loss_config['lr_factor'], beta_1=0.5).get_updates(weightsGB,[], loss_GB)
         self.netGB_train = K.function([self.distorted_B, self.real_B, self.mask_eyes_B, self.layout_B], 
                                       [loss_GB, loss_adv_GB, loss_recon_GB, loss_edge_GB, loss_pl_GB], 
@@ -362,15 +362,15 @@ class FaceswapGANModel():
     
     def train_one_batch_D(self, data_A, data_B):
         if len(data_A) == 5 and len(data_B) == 5:
-            _, warped_A, target_A, _, _ = data_A
-            _, warped_B, target_B, _, _  = data_B
+            _, warped_A, target_A, _, layout_A = data_A
+            _, warped_B, target_B, _, layout_B  = data_B
         elif len(data_A) == 4 and len(data_B) == 4:
-            warped_A, target_A, _, _  = data_A
-            warped_B, target_B, _, _  = data_B
+            warped_A, target_A, _, layout_A  = data_A
+            warped_B, target_B, _, layout_B  = data_B
         else:
             raise ValueError("Something's wrong with the input data generator.")
-        errDA = self.netDA_train([warped_A, target_A])
-        errDB = self.netDB_train([warped_B, target_B])
+        errDA = self.netDA_train([warped_A, target_A, layout_A])
+        errDB = self.netDB_train([warped_B, target_B, layout_B])
         return errDA, errDB
     
     def transform_A2B(self, img):
