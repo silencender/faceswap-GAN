@@ -158,16 +158,16 @@ class FaceswapGANModel():
         x = inp
         x = upscale_block(x, 256//coef, use_norm, norm=norm)
         ne <<= 1
-        y = Lambda(lambda x: K.image.resize_images(x, [input_size*ne, input_size*ne]))(lay)
+        y = Lambda(lambda x: tf.image.resize_images(x, [input_size*ne, input_size*ne]))(lay)
         x = SPADE_res_block(x, y, 256//coef, True, 'batchnorm')
         x = upscale_block(x, 128//coef, use_norm, norm=norm)
         ne <<= 1
-        y = Lambda(lambda x: K.image.resize_images(x, [input_size*ne, input_size*ne]))(lay)
+        y = Lambda(lambda x: tf.image.resize_images(x, [input_size*ne, input_size*ne]))(lay)
         x = SPADE_res_block(x, y, 128//coef, True, 'batchnorm')
         x = self_attn_block(x, 128//coef) if use_self_attn else x
         x = upscale_block(x, 64//coef, use_norm, norm=norm)
         ne <<= 1
-        y = Lambda(lambda x: K.image.resize_images(x, [input_size*ne, input_size*ne]))(lay)
+        y = Lambda(lambda x: tf.image.resize_images(x, [input_size*ne, input_size*ne]))(lay)
         x = SPADE_res_block(x, y, 64//coef, True, 'batchnorm')
         #x = res_block(x, 64//coef, norm=norm)
         x = self_attn_block(x, 64//coef) if use_self_attn else conv_block(x, 64//coef, strides=1)
@@ -178,7 +178,7 @@ class FaceswapGANModel():
             outputs.append(Conv2D(3, kernel_size=5, padding='same', activation="tanh")(x))
             x = upscale_block(x, 64//coef, use_norm, norm=norm)
             ne <<= 1
-            y = Lambda(lambda x: K.image.resize_images(x, [input_size*ne, input_size*ne]))(lay)
+            y = Lambda(lambda x: tf.image.resize_images(x, [input_size*ne, input_size*ne]))(lay)
             x = SPADE_res_block(x, y, 256//coef, True, 'batchnorm')
             x = conv_block(x, 64//coef, strides=1)
             activ_map_size *= 2
