@@ -167,7 +167,6 @@ def SPADE_res_block(input_tensor, cond_input_tensor, f, use_norm=True, norm='non
     def SPADE(input_tensor, cond_input_tensor, f, use_norm=True, norm='none'):
         x = input_tensor
         x = normalization(x, norm, f) if use_norm else x
-        y = cond_input_tensor
         y = Conv2D(128, kernel_size=3, kernel_regularizer=regularizers.l2(w_l2), 
                    kernel_initializer=conv_init, padding='same')(y)
         y = Activation('relu')(y)           
@@ -180,12 +179,15 @@ def SPADE_res_block(input_tensor, cond_input_tensor, f, use_norm=True, norm='non
         return x
         
     x = input_tensor
-    x = SPADE(x, cond_input_tensor, f, use_norm, norm)
+    shape_x = x.get_shape().as_list()
+    y = cond_input_tensor
+    y = Lambda(lambda x: K.tf.image.resize_images(x, [shape_x[1], shape_x[2]]))(y)
+    x = SPADE(x, y, f, use_norm, norm)
     x = Activation('relu')(x)
     x = ReflectPadding2D(x)
     x = Conv2D(f, kernel_size=3, kernel_regularizer=regularizers.l2(w_l2), 
                kernel_initializer=conv_init, use_bias=not use_norm)(x)
-    x = SPADE(x, cond_input_tensor, f, use_norm, norm)
+    x = SPADE(x, y, f, use_norm, norm)
     x = Activation('relu')(x)
     x = ReflectPadding2D(x)
     x = Conv2D(f, kernel_size=3, kernel_regularizer=regularizers.l2(w_l2), 
