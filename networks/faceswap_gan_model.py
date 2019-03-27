@@ -159,7 +159,8 @@ class FaceswapGANModel():
         x = upscale_block(x, 256//coef)
         ne <<= 1
         y = Lambda(lambda x: K.tf.image.resize_images(x, [input_size*ne, input_size*ne]))(lay)
-        #x = SPADE_res_block(x, y, 256//coef, True, 'batchnorm')
+        print(y.shape)
+        x = SPADE_res_block(x, y, 256//coef, True, 'batchnorm')
         x = upscale_block(x, 128//coef)
         ne <<= 1
         y = Lambda(lambda x: K.tf.image.resize_images(x, [input_size*ne, input_size*ne]))(lay)
