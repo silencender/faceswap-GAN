@@ -159,17 +159,17 @@ class FaceswapGANModel():
         x = upscale_block(x, 256//coef, use_norm, norm=norm)
         ne <<= 1
         y = tf.image.resize_images(lay, [input_size*ne, input_size*ne])
-        y = SPADE_res_block(x, y, 256//coef, True, 'batchnorm')
+        x = SPADE_res_block(x, y, 256//coef, True, 'batchnorm')
         x = upscale_block(x, 128//coef, use_norm, norm=norm)
         ne <<= 1
         y = tf.image.resize_images(lay, [input_size*ne, input_size*ne])
-        y = SPADE_res_block(x, y, 128//coef, True, 'batchnorm')
+        x = SPADE_res_block(x, y, 128//coef, True, 'batchnorm')
         x = self_attn_block(x, 128//coef) if use_self_attn else x
         x = upscale_block(x, 64//coef, use_norm, norm=norm)
         ne <<= 1
         y = tf.image.resize_images(lay, [input_size*ne, input_size*ne])
-        y = SPADE_res_block(x, y, 64//coef, True, 'batchnorm')
-        x = res_block(x, 64//coef, norm=norm)
+        x = SPADE_res_block(x, y, 64//coef, True, 'batchnorm')
+        #x = res_block(x, 64//coef, norm=norm)
         x = self_attn_block(x, 64//coef) if use_self_attn else conv_block(x, 64//coef, strides=1)
         
         outputs = []
@@ -179,7 +179,7 @@ class FaceswapGANModel():
             x = upscale_block(x, 64//coef, use_norm, norm=norm)
             ne <<= 1
             y = tf.image.resize_images(lay, [input_size*ne, input_size*ne])
-            y = SPADE_res_block(x, y, 256//coef, True, 'batchnorm')
+            x = SPADE_res_block(x, y, 256//coef, True, 'batchnorm')
             x = conv_block(x, 64//coef, strides=1)
             activ_map_size *= 2
         
