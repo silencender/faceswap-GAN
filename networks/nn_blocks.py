@@ -167,6 +167,7 @@ def SPADE_res_block(input_tensor, cond_input_tensor, f, use_norm=True, norm='non
     def SPADE(input_tensor, cond_input_tensor, f, use_norm=True, norm='none'):
         x = input_tensor
         x = normalization(x, norm, f) if use_norm else x
+        y = cond_input_tensor
         y = Conv2D(128, kernel_size=3, kernel_regularizer=regularizers.l2(w_l2), 
                    kernel_initializer=conv_init, padding='same')(y)
         y = Activation('relu')(y)           
