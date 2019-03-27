@@ -157,12 +157,12 @@ class FaceswapGANModel():
         x = inp
         y = lay
         x = upscale_block(x, 256//coef)
-        #x = SPADE_res_block(x, y, 256//coef, True, 'batchnorm')
+        x = SPADE_res_block(x, y, 256//coef, True, 'batchnorm')
         x = upscale_block(x, 128//coef)
-        #x = SPADE_res_block(x, y, 128//coef, True, 'batchnorm')
+        x = SPADE_res_block(x, y, 128//coef, True, 'batchnorm')
         x = self_attn_block(x, 128//coef) if use_self_attn else x
         x = upscale_block(x, 64//coef)
-        #x = SPADE_res_block(x, y, 64//coef, True, 'batchnorm')
+        x = SPADE_res_block(x, y, 64//coef, True, 'batchnorm')
         #x = res_block(x, 64//coef, norm=norm)
         x = self_attn_block(x, 64//coef) if use_self_attn else conv_block(x, 64//coef, strides=1)
         
@@ -171,7 +171,7 @@ class FaceswapGANModel():
         while (activ_map_size < output_size):
             outputs.append(Conv2D(3, kernel_size=5, padding='same', activation="tanh")(x))
             x = upscale_block(x, 64//coef)
-            #x = SPADE_res_block(x, y, 256//coef, True, 'batchnorm')
+            x = SPADE_res_block(x, y, 256//coef, True, 'batchnorm')
             x = conv_block(x, 64//coef, strides=1)
             activ_map_size *= 2
         
@@ -369,8 +369,6 @@ class FaceswapGANModel():
             warped_B, target_B, _, _  = data_B
         else:
             raise ValueError("Something's wrong with the input data generator.")
-        print(warped_A.shape)
-        print(target_A.shape)
         errDA = self.netDA_train([warped_A, target_A])
         errDB = self.netDB_train([warped_B, target_B])
         return errDA, errDB

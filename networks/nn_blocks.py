@@ -182,7 +182,7 @@ def SPADE_res_block(input_tensor, cond_input_tensor, f, use_norm=True, norm='non
     x = input_tensor
     shape_x = x.get_shape().as_list()
     y = cond_input_tensor
-    y = Lambda(lambda x: K.tf.image.resize_images(x, [shape_x[1], shape_x[2]]))(y)
+    y = Lambda(lambda x: K.tf.image.resize_images(x, shape_x[1:3]))(y)
     x = SPADE(x, y, f, use_norm, norm)
     x = Activation('relu')(x)
     x = ReflectPadding2D(x)
