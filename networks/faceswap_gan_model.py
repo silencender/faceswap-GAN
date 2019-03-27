@@ -222,10 +222,10 @@ class FaceswapGANModel():
 
         masked_fake_output = alpha * bgr + (1-alpha) * distorted_input 
 
-        fn_generate = K.function([distorted_input], [masked_fake_output])
-        fn_mask = K.function([distorted_input], [concatenate([alpha, alpha, alpha])])
-        fn_abgr = K.function([distorted_input], [concatenate([alpha, bgr])])
-        fn_bgr = K.function([distorted_input], [bgr])
+        fn_generate = K.function([distorted_input, layout], [masked_fake_output])
+        fn_mask = K.function([distorted_input, layout], [concatenate([alpha, alpha, alpha])])
+        fn_abgr = K.function([distorted_input, layout], [concatenate([alpha, bgr])])
+        fn_bgr = K.function([distorted_input, layout], [bgr])
         return distorted_input, layout, fake_output, alpha, fn_generate, fn_mask, fn_abgr, fn_bgr 
     
     def build_train_functions(self, loss_weights=None, **loss_config):
