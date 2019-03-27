@@ -148,7 +148,7 @@ class FaceswapGANModel():
                       norm='none', 
                       model_capacity='standard'):  
         coef = 2 if model_capacity == "lite" else 1
-        upscale_block = upscale_nn if model_capacity == "lite" else upscale_ps
+        upscale_block = upscale_nn
         activ_map_size = input_size
         use_norm = False if (norm == 'none') else True
 
@@ -156,16 +156,16 @@ class FaceswapGANModel():
         lay = Input(shape=(output_size, output_size, 3))
         ne = 1
         x = inp
-        x = UpSampling2D()(x)
+        x = upscale_block(x, 256//coef)
         ne <<= 1
         y = Lambda(lambda x: K.tf.image.resize_images(x, [input_size*ne, input_size*ne]))(lay)
         x = SPADE_res_block(x, y, 256//coef, True, 'batchnorm')
-        x = UpSampling2D()(x)
+        x = upscale_block(x, 128//coef)
         ne <<= 1
         y = Lambda(lambda x: K.tf.image.resize_images(x, [input_size*ne, input_size*ne]))(lay)
         x = SPADE_res_block(x, y, 128//coef, True, 'batchnorm')
         x = self_attn_block(x, 128//coef) if use_self_attn else x
-        x = UpSampling2D()(x)
+        x = upscale_block(x, 64//coef)
         ne <<= 1
         y = Lambda(lambda x: K.tf.image.resize_images(x, [input_size*ne, input_size*ne]))(lay)
         x = SPADE_res_block(x, y, 64//coef, True, 'batchnorm')
@@ -176,7 +176,7 @@ class FaceswapGANModel():
         activ_map_size = activ_map_size * 8
         while (activ_map_size < output_size):
             outputs.append(Conv2D(3, kernel_size=5, padding='same', activation="tanh")(x))
-            x = UpSampling2D()(x)
+            x = upscale_block(x, 64//coef)
             ne <<= 1
             y = Lambda(lambda x: K.tf.image.resize_images(x, [input_size*ne, input_size*ne]))(lay)
             x = SPADE_res_block(x, y, 256//coef, True, 'batchnorm')
