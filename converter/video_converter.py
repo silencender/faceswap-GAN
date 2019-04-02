@@ -168,6 +168,8 @@ class VideoConverter(object):
             buf.seek(0)
             self.buf_store.append(buf)
 
+            return layout
+
         
     def process_video(self, input_img, options): 
         """Transform detected faces in single input frame."""
