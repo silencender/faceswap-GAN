@@ -99,6 +99,8 @@ class VideoConverter(object):
             clip1.fl_image(lambda img: self.prepare_layout(img, options)).subclip(duration[0], duration[1])
         else:
             clip1.fl_image(lambda img: self.prepare_layout(img, options))
+        
+        print('{} layouts has been generated.'.format(len(self.buf_store)))
 
     def convert(self, input_fn, output_fn, options, duration=None):
         self.check_options(options)
@@ -224,7 +226,6 @@ class VideoConverter(object):
             layout = plt.imread(self.buf_store.pop(0), format='jpg')
             buf.close()
             det_face_layout = layout
-            
             try:
                 # get src/tar landmarks
                 src_landmarks = get_src_landmarks(x0, x1, y0, y1, lms)
