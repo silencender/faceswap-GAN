@@ -30,14 +30,19 @@ class FaceTransformer(object):
     def set_model(self, model):
         self.model = model
 
-    def _preprocess_inp_img(self, inp_img, roi_coverage, IMAGE_SHAPE):
+    def _preprocess_inp_img(self, inp_img, inp_layout, roi_coverage, IMAGE_SHAPE):
         img_bgr = cv2.cvtColor(inp_img, cv2.COLOR_RGB2BGR)
+        layout_bgr = cv2.cvtColor(inp_layout, cv2.COLOR_RGB2BGR)
         input_size = img_bgr.shape
+        input_layout_size = layout_bgr.shape
         roi_x0, roi_x1, roi_y0, roi_y1 = cal_roi(input_size, roi_coverage)
+        roi_x0_l, roi_x1_l, roi_y0_l, roi_y1_l = cal_roi(input_layout_size, roi_coverage)
         roi = img_bgr[roi_x0:roi_x1, roi_y0:roi_y1,:] # BGR, [0, 255]  
+        roi_layout = layout_bgr[roi_x0_l:roi_x1_l, roi_y0_l:roi_y1_l,:]
         roi_size = roi.shape
         roi_bound = (roi_x0, roi_x1, roi_y0, roi_y1)
         ae_input = cv2.resize(roi, IMAGE_SHAPE[:2])/255. * 2 - 1 # BGR, [-1, 1]  
+        ae_layout_input = roi_layout/255. * 2 - 1
         #ae_input = cv2.resize(img_bgr, IMAGE_SHAPE[:2])/255. * 2 - 1 # BGR, [-1, 1]  
         self.img_bgr = img_bgr
         self.input_size = input_size
@@ -45,9 +50,10 @@ class FaceTransformer(object):
         self.roi_size = roi_size
         self.roi_bound = roi_bound
         self.ae_input = ae_input
+        self.ae_layout_input = ae_layout_input
     
-    def _ae_forward_pass(self, ae_input):
-        ae_out = self.path_func([[ae_input]])
+    def _ae_forward_pass(self, ae_input, ae_layout_input):
+        ae_out = self.path_func([[ae_input, ae_layout_input]])
         ae_out = np.squeeze(np.array([ae_out]))
         #ae_out = cv2.resize(ae_out, self.input_size[:2])
         #roi_x0, roi_x1, roi_y0, roi_y1 = self.roi_bound
@@ -108,7 +114,7 @@ class FaceTransformer(object):
             mask[:,:,:] = 255
         return mask  
 
-    def transform(self, inp_img, direction, roi_coverage, color_correction, edge_blur, IMAGE_SHAPE):
+    def transform(self, inp_img, inp_layout, direction, roi_coverage, color_correction, edge_blur, IMAGE_SHAPE):
         self.check_generator_model(self.model)
         self.check_roi_coverage(inp_img, roi_coverage)
         
@@ -120,14 +126,15 @@ class FaceTransformer(object):
             raise ValueError(f"direction should be either AtoB or BtoA, recieved {direction}.")
         
         self.inp_img = inp_img
+        self.inp_layout = inp_layout
         
         # pre-process input image
         # Set 5 members: self.img_bgr, self.input_size, self.roi, self.roi_size, self.ae_input
-        self._preprocess_inp_img(self.inp_img, roi_coverage, IMAGE_SHAPE)
+        self._preprocess_inp_img(self.inp_img, self.inp_layout, roi_coverage, IMAGE_SHAPE)
 
         # model inference
         # Set 1 member: self.ae_output
-        self._ae_forward_pass(self.ae_input)
+        self._ae_forward_pass(self.ae_input, self.ae_layout_input)
         
         # post-process transformed roi image
         # Set 3 members: self.ae_output_a, self.ae_output_masked, self.ae_output_bgr
