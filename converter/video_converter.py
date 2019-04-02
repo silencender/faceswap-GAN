@@ -223,7 +223,7 @@ class VideoConverter(object):
             det_face_im = input_img[int(x0):int(x1),int(y0):int(y1),:]
 
             buf = self.buf_store.pop(0)
-            layout = plt.imread(self.buf_store.pop(0), format='jpg')
+            layout = plt.imread(buf, format='jpg')
             buf.close()
             det_face_layout = layout
             try:
