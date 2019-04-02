@@ -3,7 +3,7 @@ from .landmarks_alignment import *
 from .color_correction import seamless_clone
 from .face_transformer import FaceTransformer
 from .vc_utils import *
-from .detector.face_layout import FaceMarker
+from .face_layout import FaceMarker
 import numpy as np
 import io
 import matplotlib.pyplot as plt
