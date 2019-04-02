@@ -2,7 +2,7 @@ import torch
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
-import converter.face_alignment as face_alignment
+import face_alignment
 
 
 class FaceMarker(object):

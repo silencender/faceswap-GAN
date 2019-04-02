@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from . import constants as C
+import constants as C
 
 # ==================================================
 # Output image initialization functions

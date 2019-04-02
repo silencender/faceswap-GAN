@@ -1,7 +1,7 @@
-from .color_correction import *
+from color_correction import *
 import cv2
 import numpy as np
-from .vc_utils import cal_roi
+from vc_utils import cal_roi
 
 class FaceTransformer(object):
     """
