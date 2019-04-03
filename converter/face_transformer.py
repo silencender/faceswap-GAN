@@ -53,7 +53,7 @@ class FaceTransformer(object):
         self.ae_layout_input = ae_layout_input
     
     def _ae_forward_pass(self, ae_input, ae_layout_input):
-        ae_out = self.path_func([[ae_input, ae_layout_input]])
+        ae_out = self.path_func([[ae_input], [ae_layout_input]])
         ae_out = np.squeeze(np.array([ae_out]))
         #ae_out = cv2.resize(ae_out, self.input_size[:2])
         #roi_x0, roi_x1, roi_y0, roi_y1 = self.roi_bound
