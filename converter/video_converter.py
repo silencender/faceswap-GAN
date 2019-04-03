@@ -168,7 +168,7 @@ class VideoConverter(object):
             buf.seek(0)
             self.buf_store.append(buf)
 
-            return layout
+        return image
 
         
     def process_video(self, input_img, options): 
