@@ -105,6 +105,8 @@ class VideoConverter(object):
         
         print('{} layouts has been generated.'.format(len(self.buf_store)))
 
+        return self.buf_store
+
     def convert(self, input_fn, output_fn, options, duration=None):
         self.check_options(options)
         self._init_env(options)
