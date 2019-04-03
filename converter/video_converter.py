@@ -32,7 +32,7 @@ class VideoConverter(object):
         self.ftrans = FaceTransformer()
 
         # face marker
-        self.fm = FaceMarker()
+        self.fm = None
         # buf array to store layout in mem
         self.buf_store = []
         
@@ -94,6 +94,9 @@ class VideoConverter(object):
         if self.fdetect is None:
             raise Exception(f"face detector has not been set through VideoConverter.set_face_detector() yet.")
         
+        if self.fm is None:
+            self.fm = FaceMarker()
+        
         clip1 = VideoFileClip(input_fn)
         if type(duration) is tuple:
             clip = clip1.fl_image(lambda img: self.prepare_layout(img, options)).subclip(duration[0], duration[1])
@@ -107,10 +110,10 @@ class VideoConverter(object):
 
         return self.buf_store
 
-    def convert(self, input_fn, output_fn, options, duration=None):
+    def convert(self, input_fn, input_buf, output_fn, options, duration=None):
         self.check_options(options)
         self._init_env(options)
-        del self.fm
+        self.buf_store = input_buf
 
         if self.fdetect is None:
             raise Exception(f"face detector has not been set through VideoConverter.set_face_detector() yet.")
