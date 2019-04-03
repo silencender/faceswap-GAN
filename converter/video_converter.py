@@ -135,6 +135,7 @@ class VideoConverter(object):
                                                use_auto_downscaling=options["use_auto_downscaling"],
                                                min_face_area=options["min_face_area"]
                                               )
+        best_conf_score = 0
         # loop through all detected faces
         for i, (x0, y1, x1, y0, conf_score) in enumerate(faces):
             lms = pnts[:,i:i+1]
