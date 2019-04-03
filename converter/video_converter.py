@@ -96,9 +96,12 @@ class VideoConverter(object):
         
         clip1 = VideoFileClip(input_fn)
         if type(duration) is tuple:
-            _ = clip1.fl_image(lambda img: self.prepare_layout(img, options)).subclip(duration[0], duration[1])
+            clip = clip1.fl_image(lambda img: self.prepare_layout(img, options)).subclip(duration[0], duration[1])
         else:
-            _ = clip1.fl_image(lambda img: self.prepare_layout(img, options))
+            clip = clip1.fl_image(lambda img: self.prepare_layout(img, options))
+        
+        clip.write_videofile('tmp.mp4', audio=False)
+        clip1.reader.close()
         
         print('{} layouts has been generated.'.format(len(self.buf_store)))
 
