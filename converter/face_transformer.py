@@ -42,7 +42,7 @@ class FaceTransformer(object):
         roi_size = roi.shape
         roi_bound = (roi_x0, roi_x1, roi_y0, roi_y1)
         ae_input = cv2.resize(roi, IMAGE_SHAPE[:2])/255. * 2 - 1 # BGR, [-1, 1]  
-        ae_layout_input = roi_layout/255. * 2 - 1
+        ae_layout_input = cv2.resize(roi_layout, IMAGE_SHAPE[:2])/255. * 2 - 1
         #ae_input = cv2.resize(img_bgr, IMAGE_SHAPE[:2])/255. * 2 - 1 # BGR, [-1, 1]  
         self.img_bgr = img_bgr
         self.input_size = input_size
