@@ -5,6 +5,7 @@ from .GroupNormalization import GroupNormalization
 from .pixel_shuffler import PixelShuffler
 from .custom_layers.scale_layer import Scale
 from .custom_inits.icnr_initializer import icnr_keras
+from .oct_conv2d import OctConv2D
 import tensorflow as tf
 import keras.backend as K
 
@@ -139,6 +140,47 @@ def conv_block_d(input_tensor, f, use_norm=False, w_l2=w_l2, norm='none'):
     x = normalization(x, norm, f) if use_norm else x
     return x
 
+def octconv_block(input_tensor, f, input_size, target_size, alpha, use_norm=False, norm='none'):
+
+    x = input_tensor
+    low = AveragePooling2D(2)(x)
+
+    active_size = input_size
+    filter_size = f
+
+    # 16 channels block
+    high, low = OctConv2D(filters=filter_size, alpha=alpha)([x, low])
+    high = normalization(high, norm, filter_size) if use_norm else high
+    #high = BatchNormalization()(high)
+    high = Activation("relu")(high)
+    low = normalization(low, norm, filter_size) if use_norm else low
+    #low = BatchNormalization()(low)
+    low = Activation("relu")(low)
+
+    while active_size > target_size*2:
+        high, low = OctConv2D(filters=filter_size, alpha=alpha, strides=(2, 2))([high, low])
+        high = normalization(high, norm, filter_size) if use_norm else high
+        #high = BatchNormalization()(high)
+        high = Activation("relu")(high)
+        low = normalization(low, norm, filter_size) if use_norm else low
+        #low = BatchNormalization()(low)
+        low = Activation("relu")(low)
+
+        active_size /= 2
+        filter_size *= 2
+
+    #high, _ = OctConv2D(filters=filter_size, alpha=alpha, strides=(2, 2))([high, low])
+    #high = normalization(high, norm, filter_size) if use_norm else high
+    high = AveragePooling2D(2)(high)
+
+    x = Concatenate()([high, low])
+    x = Conv2D(filter_size, 1)(x)
+    x = normalization(x, norm, filter_size) if use_norm else x
+    #x = BatchNormalization()(x)
+    x = Activation("relu")(x)
+    
+    return x
+
 def res_block(input_tensor, f, use_norm=False, w_l2=w_l2, norm='none'):
     x = input_tensor
     x = Conv2D(f, kernel_size=3, kernel_regularizer=regularizers.l2(w_l2), 
@@ -175,7 +217,7 @@ def SPADE_res_block(input_tensor, cond_input_tensor, f, use_norm=True, norm='non
                    kernel_initializer=conv_init, padding='same')(y)
         beta = Conv2D(f, kernel_size=3, kernel_regularizer=regularizers.l2(w_l2), 
                    kernel_initializer=conv_init, padding='same')(y)
-        x = multiply([x, gamma])
+        x = add([x, multiply([x, gamma])])
         x = add([x, beta])
         return x
         

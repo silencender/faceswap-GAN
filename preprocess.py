@@ -12,7 +12,7 @@ class VideoInfo:
 
 def process_image(input_img, info, detector, save_interval, save_path): 
     minsize = 30 # minimum size of face
-    detec_threshold = 0.9
+    detec_threshold = 0.7
     threshold = [0.7, 0.8, detec_threshold]  # three steps's threshold
     factor = 0.709 # scale factor   
     

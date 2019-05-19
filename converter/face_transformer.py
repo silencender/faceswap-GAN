@@ -2,6 +2,7 @@ from color_correction import *
 import cv2
 import numpy as np
 from vc_utils import cal_roi
+import matplotlib.pyplot as plt
 
 class FaceTransformer(object):
     """
@@ -33,6 +34,7 @@ class FaceTransformer(object):
     def _preprocess_inp_img(self, inp_img, inp_layout, roi_coverage, IMAGE_SHAPE):
         img_bgr = cv2.cvtColor(inp_img, cv2.COLOR_RGB2BGR)
         layout_bgr = cv2.cvtColor(inp_layout, cv2.COLOR_RGB2BGR)
+        #layout_bgr = inp_layout
         input_size = img_bgr.shape
         input_layout_size = layout_bgr.shape
         roi_x0, roi_x1, roi_y0, roi_y1 = cal_roi(input_size, roi_coverage)
@@ -42,7 +44,15 @@ class FaceTransformer(object):
         roi_size = roi.shape
         roi_bound = (roi_x0, roi_x1, roi_y0, roi_y1)
         ae_input = cv2.resize(roi, IMAGE_SHAPE[:2])/255. * 2 - 1 # BGR, [-1, 1]  
-        ae_layout_input = cv2.resize(roi_layout, IMAGE_SHAPE[:2])/255. * 2 - 1
+        ae_layout_input = cv2.resize(roi_layout, IMAGE_SHAPE[:2])/255.
+
+        # = cv2.cvtColor(((ae_input+1)/2.*255).astype('uint8'), cv2.COLOR_BGR2RGB)
+        #y = cv2.cvtColor(((ae_layout_input+1)/2.*255).astype('uint8'), cv2.COLOR_BGR2RGB)
+        #c = np.clip((0.8*y+x),0,255) .astype('uint8')
+        #p=np.hstack([x,y,c])
+        #plt.imshow(p)
+        #exit()
+
         #ae_input = cv2.resize(img_bgr, IMAGE_SHAPE[:2])/255. * 2 - 1 # BGR, [-1, 1]  
         self.img_bgr = img_bgr
         self.input_size = input_size
@@ -66,6 +76,11 @@ class FaceTransformer(object):
         ae_output_bgr = np.clip( (ae_output[:,:,1:] + 1) * 255 / 2, 0, 255)
         ae_output_bgr = cv2.resize(ae_output_bgr, (roi_size[1],roi_size[0]))
         ae_output_masked = (ae_output_a/255 * ae_output_bgr + (1 - ae_output_a/255) * roi).astype('uint8') # BGR, [0, 255]
+        '''
+        p = np.hstack([cv2.cvtColor(roi, cv2.COLOR_BGR2RGB).astype('uint8'), np.concatenate((ae_output_a, ae_output_a, ae_output_a), axis=-1).astype('uint8'), cv2.cvtColor(ae_output_bgr.astype('uint8'), cv2.COLOR_BGR2RGB),cv2.cvtColor(ae_output_masked.astype('uint8'), cv2.COLOR_BGR2RGB)])
+        plt.imshow(p)
+        exit()
+        '''
         self.ae_output_a = ae_output_a         
         if color_correction == "adain":
             self.ae_output_masked = adain(ae_output_masked, roi)

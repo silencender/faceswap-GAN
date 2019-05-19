@@ -161,7 +161,7 @@ def read_image(fn, fns_all_trn_data, dir_bm_eyes=None, dir_layout=None, res=64, 
     warped_img, target_img = random_warp_rev(image, res=res)
     
     bm_eyes = target_img[...,3:6]
-    layout = target_img[...,6:]
+    layout = warped_img[...,6:]
     warped_img = warped_img[...,:3]
     target_img = target_img[...,:3]
     

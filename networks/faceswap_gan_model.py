@@ -138,7 +138,30 @@ class FaceswapGANModel():
         out = concatenate([alpha, bgr])
         outputs.append(out)
         return Model(inp, outputs)
-        '''
+
+    @staticmethod
+    def build_encoder(nc_in=3, 
+                      input_size=64, 
+                      use_self_attn=True, 
+                      norm='none', 
+                      model_capacity='standard'):
+        coef = 2 if model_capacity == "lite" else 1
+        latent_dim = 2048 if (model_capacity == "lite" and input_size > 64) else 1024
+        upscale_block = upscale_nn if model_capacity == "lite" else upscale_ps
+        activ_map_size = input_size
+        use_norm = False if (norm == 'none') else True
+        
+        inp = Input(shape=(input_size, input_size, nc_in))
+
+        alpha = 0.5
+        x = octconv_block(inp, 64//coef, input_size, 4, alpha, use_norm, norm)
+        
+        x = Dense(latent_dim)(Flatten()(x))
+        x = Dense(4*4*1024//(coef**2))(x)
+        x = Reshape((4, 4, 1024//(coef**2)))(x)
+        out = upscale_block(x, 512//coef, use_norm, norm=norm)
+        return Model(inputs=inp, outputs=out)  
+    '''
 
     @staticmethod
     def build_decoder(nc_in=512, 
@@ -171,7 +194,7 @@ class FaceswapGANModel():
         while (activ_map_size < output_size):
             outputs.append(Conv2D(3, kernel_size=5, padding='same', activation="tanh")(x))
             x = upscale_block(x, 64//coef)
-            x = SPADE_res_block(x, y, 256//coef, True, 'batchnorm')
+            x = SPADE_res_block(x, y, 64//coef, True, 'batchnorm')
             x = conv_block(x, 64//coef, strides=1)
             activ_map_size *= 2
         
